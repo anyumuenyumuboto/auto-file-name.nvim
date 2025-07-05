@@ -3,7 +3,7 @@
 ## 1. 初期設定とプロジェクト構造の確立
 
 *   [ ] **1.1. プロジェクトディレクトリの作成**:
-    *   [ ] `AutoFileName.nvim/` ディレクトリを作成。
+    *   [x] `AutoFileName.nvim/` ディレクトリを作成。
     *   [ ] `lua/autofilename/init.lua` や `plugin/autofilename.lua` など、主要なエントリーポイントファイルの配置を決定。
 *   [ ] **1.2. 設定ファイルの準備**:
     *   [ ] ユーザー設定を管理するためのLuaモジュール（例: `lua/autofilename/config.lua`）の雛形を作成。

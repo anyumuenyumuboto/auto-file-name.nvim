@@ -15,3 +15,7 @@ tasks:
   aider_start:
     cmds:
       - aider --model gemini/gemini-2.5-flash --api-key gemini=$GEMINI_API_KEY
+  # 開発時に、自分の環境内にあるAutoSaveFile.nvimプラグインを読み込む
+  nvim_dev:
+    cmds:
+      - nvim --clean -u dev_config/init.lua

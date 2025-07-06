@@ -7,5 +7,7 @@ vim.opt.runtimepath:prepend(plugin_dev_path)
 -- 開発中のプラグインのセットアップ関数を呼び出します
 -- AutoFileName.nvim/lua/autofilename/init.lua が'autofilename' モジュールとしてロードされます               
 require('autofilename').setup({
-	extention = ".txt",
+	-- extension = ".txt",
+	filename_format = "abcde_%Y%m%dT%H%M%SZ",
+	-- filename_format = "%Y%m%dT%H%M%S_{{ lua: vim.fn.getcwd():gsub('/', '_') }}_%title%",
 })

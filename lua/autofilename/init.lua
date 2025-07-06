@@ -6,6 +6,8 @@ local M = {}
 local _config = {
     lang = "en",      -- デフォルト言語を英語に設定
     extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
+    filename_format = "%Y%m%dT%H%M%S_%title%", -- ファイル名フォーマット (ISO 8601形式のタイムスタンプとタイトル)
+    max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
 }
 
 -- 翻訳メッセージを格納するテーブル
@@ -15,6 +17,40 @@ local _lang_messages = {}
 local function _(key, ...)
     local message = _lang_messages[key] or key -- キーが見つからない場合はキー自体を返す
     return string.format(message, ...)
+end
+
+local function sanitize_filename_part(s)
+    if not s then return "" end
+    -- 空白文字をアンダースコアに置換
+    s = string.gsub(s, "%s+", "_")
+    -- ファイル名に使えない文字を削除 (/, \, :, *, ?, ", <, >, |)
+    s = string.gsub(s, "[/\\%*:?\"<>|]", "")
+    -- 制御文字を削除
+    s = string.gsub(s, "[%c]", "")
+    -- 先頭・末尾のアンダースコアを削除
+    s = string.gsub(s, "^_+", "")
+    s = string.gsub(s, "_+$", "")
+    -- 連続するアンダースコアを一つにまとめる
+    s = string.gsub(s, "__+", "_")
+    return s
+end
+
+-- Luaプレースホルダーを処理し、安全なファイル名の一部を返す関数
+local function process_lua_placeholder(lua_code_str)
+    local func, err = load("return " .. lua_code_str)
+    if not func then
+        vim.notify(string.format("AutoFileName: Luaコードのパースに失敗しました: %s (コード: '%s')", err, lua_code_str), vim.log.levels.ERROR)
+        return "" -- エラーの場合は空文字列を返す
+    end
+
+    local ok, result = pcall(func)
+    if not ok then
+        vim.notify(string.format("AutoFileName: Luaコードの実行に失敗しました: %s (コード: '%s')", result, lua_code_str), vim.log.levels.ERROR)
+        return "" -- エラーの場合は空文字列を返す
+    end
+
+    -- 結果を文字列に変換し、ファイル名としてサニタイズ
+    return sanitize_filename_part(tostring(result))
 end
 
 -- 自動保存コマンドを定義
@@ -66,10 +102,39 @@ function M.setup(user_config)
 	vim.api.nvim_create_user_command(
 		"AutoSaveNote", -- コマンド名
 		function(opts)
-			-- ここにファイル名自動生成と保存のロジックを記述します
-			-- print("AutoSaveNoteコマンドが実行されました！")
-			-- ファイル名を設定 (現在は固定で "untitled") と拡張子
-			local filename_base = "untitled"
+			-- 現在のバッファの内容を全行取得
+			local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+            local title = ""
+            -- 最初の空でない行をタイトルとして取得
+            for _, line in ipairs(lines) do
+                -- 行をトリムし、空でないかチェック
+                local trimmed_line = line:match("^%s*(.-)%s*$")
+                if trimmed_line ~= "" then
+                    title = trimmed_line
+                    break
+                end
+            end
+            title = sanitize_filename_part(title)
+
+            -- ファイル名フォーマットを処理
+            local filename_format_str = _config.filename_format
+            -- %title% プレースホルダーを置換
+            filename_format_str = string.gsub(filename_format_str, "%%title%%", title)
+
+            -- {{ lua: ... }} プレースホルダーを置換
+            filename_format_str = string.gsub(filename_format_str, "{{%s*lua:%s*(.-)%s*}}", function(lua_code)
+                return process_lua_placeholder(lua_code)
+            end)
+
+            -- os.dateでタイムスタンプと残りのフォーマットを処理
+			local filename_base = os.date(filename_format_str)
+
+            -- ファイル名の長さを制限 (拡張子と最悪の連番(-XXXXX)の長さを考慮)
+            local max_base_len = _config.max_filename_length - #_config.extension - 5
+            if #filename_base > max_base_len then
+                filename_base = string.sub(filename_base, 1, max_base_len)
+            end
+
 			local file_extension = _config.extension
 			local save_dir = vim.fn.getcwd()
 			local save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. file_extension)
@@ -84,8 +149,6 @@ function M.setup(user_config)
 			-- 最終的な保存パスを決定
 			local final_save_path = save_path_candidate
 
-			-- 現在のバッファの内容を全行取得
-			local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 			-- ファイルへの書き込みを試みる
 			local ok, result_or_err = pcall(vim.fn.writefile, lines, final_save_path)
 

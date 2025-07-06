@@ -6,8 +6,9 @@ local M = {}
 local _config = {
     lang = "en",      -- デフォルト言語を英語に設定
     extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
-    filename_format = "%Y%m%dT%H%M%S_%title%", -- ファイル名フォーマット (ISO 8601形式のタイムスタンプとタイトル)
+    filename_format = "{{strftime:%Y%m%dT%H%M%S}}_{{first_line}}", -- ファイル名フォーマット (ISO 8601形式のタイムスタンプと最初の行の内容)
     max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
+    save_directory = nil, -- デフォルトの保存ディレクトリ (nilの場合は現在の作業ディレクトリ)
 }
 
 -- 翻訳メッセージを格納するテーブル
@@ -118,16 +119,22 @@ function M.setup(user_config)
 
             -- ファイル名フォーマットを処理
             local filename_format_str = _config.filename_format
-            -- %title% プレースホルダーを置換
-            filename_format_str = string.gsub(filename_format_str, "%%title%%", title)
+            -- {{first_line}} プレースホルダーを置換
+            filename_format_str = string.gsub(filename_format_str, "{{%s*first_line%s*}}", title)
 
             -- {{ lua: ... }} プレースホルダーを置換
             filename_format_str = string.gsub(filename_format_str, "{{%s*lua:%s*(.-)%s*}}", function(lua_code)
                 return process_lua_placeholder(lua_code)
             end)
 
-            -- os.dateでタイムスタンプと残りのフォーマットを処理
-			local filename_base = os.date(filename_format_str)
+            -- {{strftime: ...}} プレースホルダーを置換
+            -- os.dateでstrftime形式のフォーマットを処理
+            filename_format_str = string.gsub(filename_format_str, "{{%s*strftime:%s*(.-)%s*}}", function(strftime_format)
+                return os.date(strftime_format)
+            end)
+
+            -- 最終的なファイル名ベースは、全てのプレースホルダーが置換された文字列となる
+			local filename_base = filename_format_str
 
             -- ファイル名の長さを制限 (拡張子と最悪の連番(-XXXXX)の長さを考慮)
             local max_base_len = _config.max_filename_length - #_config.extension - 5
@@ -136,7 +143,17 @@ function M.setup(user_config)
             end
 
 			local file_extension = _config.extension
-			local save_dir = vim.fn.getcwd()
+            local save_dir = _config.save_directory or vim.fn.getcwd()
+
+            -- 保存ディレクトリが存在しない場合は作成
+            if vim.fn.isdirectory(save_dir) == 0 then
+                local mkdir_ok, mkdir_err = pcall(vim.fn.mkdir, save_dir, "p")
+                if not mkdir_ok then
+                    vim.notify(string.format(_("file_save_failed_message"), "ディレクトリの作成に失敗しました: " .. (mkdir_err or _("unknown_error"))), vim.log.levels.ERROR)
+                    return -- ディレクトリ作成失敗時は処理を中断
+                end
+            end
+
 			local save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. file_extension)
 			local counter = 0
 

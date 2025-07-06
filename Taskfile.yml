@@ -19,3 +19,12 @@ tasks:
   nvim_dev:
     cmds:
       - nvim --clean -u dev_config/init.lua
+  nvim_dev_en:
+    cmds:
+      - LANG=en_US.UTF-8 nvim --clean -u dev_config/init.lua
+  nvim_dev_zh:
+    cmds:
+      - LANG=zh_CN.UTF-8 nvim --clean -u dev_config/init.lua
+  nvim_dev_ja:
+    cmds:
+      - LANG=ja_JP.UTF-8 nvim --clean -u dev_config/init.lua

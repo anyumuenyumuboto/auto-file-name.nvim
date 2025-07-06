@@ -67,22 +67,30 @@ function M.setup(user_config)
 		function(opts)
 			-- ここにファイル名自動生成と保存のロジックを記述します
 			-- print("AutoSaveNoteコマンドが実行されました！")
-			-- ファイル名を設定
-			local filename = "untitled"
+			-- ファイル名を設定 (現在は固定で "untitled")
+			local filename_base = "untitled"
 			local save_dir = vim.fn.getcwd()
+			local save_path_candidate = vim.fs.joinpath(save_dir, filename_base)
+			local counter = 0
 
-			-- ファイルパスを結合
-			local save_path = vim.fs.joinpath(save_dir, filename)
+			-- ファイル名が既に存在する場合、連番を付与してユニークなファイル名を見つける
+			while vim.fn.filereadable(save_path_candidate) == 1 do
+				counter = counter + 1
+				save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. "-" .. counter)
+			end
+
+			-- 最終的な保存パスを決定
+			local final_save_path = save_path_candidate
 
 			-- 現在のバッファの内容を全行取得
 			local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 			-- ファイルへの書き込みを試みる
-			local ok, result_or_err = pcall(vim.fn.writefile, lines, save_path)
+			local ok, result_or_err = pcall(vim.fn.writefile, lines, final_save_path)
 
 			if ok and result_or_err == 0 then
-				vim.api.nvim_buf_set_name(0, save_path)
+				vim.api.nvim_buf_set_name(0, final_save_path)
 				vim.api.nvim_buf_set_option(0, "modified", false)
-				vim.notify(_("file_saved_message", save_path), vim.log.levels.INFO)
+				vim.notify(_("file_saved_message", final_save_path), vim.log.levels.INFO)
 			else
 				vim.notify(_("file_save_failed_message", (result_or_err or _("unknown_error"))), vim.log.levels.ERROR)
 			end

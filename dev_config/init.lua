@@ -6,4 +6,6 @@ local plugin_dev_path = vim.fn.fnamemodify(vim.fn.expand('<sfile>:p'), ':h:h')
 vim.opt.runtimepath:prepend(plugin_dev_path)                           
 -- 開発中のプラグインのセットアップ関数を呼び出します
 -- AutoFileName.nvim/lua/autofilename/init.lua が'autofilename' モジュールとしてロードされます               
-require('autofilename').setup()
+require('autofilename').setup({
+	extention = ".txt",
+})

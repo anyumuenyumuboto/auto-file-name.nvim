@@ -4,7 +4,8 @@ local M = {}
 
 -- プラグイン設定
 local _config = {
-    lang = "en", -- デフォルト言語を英語に設定
+    lang = "en",      -- デフォルト言語を英語に設定
+    extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
 }
 
 -- 翻訳メッセージを格納するテーブル
@@ -67,16 +68,17 @@ function M.setup(user_config)
 		function(opts)
 			-- ここにファイル名自動生成と保存のロジックを記述します
 			-- print("AutoSaveNoteコマンドが実行されました！")
-			-- ファイル名を設定 (現在は固定で "untitled")
+			-- ファイル名を設定 (現在は固定で "untitled") と拡張子
 			local filename_base = "untitled"
+			local file_extension = _config.extension
 			local save_dir = vim.fn.getcwd()
-			local save_path_candidate = vim.fs.joinpath(save_dir, filename_base)
+			local save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. file_extension)
 			local counter = 0
 
 			-- ファイル名が既に存在する場合、連番を付与してユニークなファイル名を見つける
 			while vim.fn.filereadable(save_path_candidate) == 1 do
 				counter = counter + 1
-				save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. "-" .. counter)
+				save_path_candidate = vim.fs.joinpath(save_dir, filename_base .. "-" .. counter .. file_extension)
 			end
 
 			-- 最終的な保存パスを決定

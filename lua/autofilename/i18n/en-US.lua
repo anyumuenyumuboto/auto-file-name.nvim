@@ -1,7 +1,16 @@
-
 return {
-    file_saved_message = "File saved as %s",
-    file_save_failed_message = "Failed to save file: %s",
-    unknown_error = "Unknown error",
-    autosavenote_command_desc = 'Save current buffer as "untitled"',
+	file_saved_message = "File saved as %s",
+	file_save_failed_message = "Failed to save file: %s",
+	unknown_error = "Unknown error",
+	autosavenote_command_desc = 'Save current buffer as "untitled"',
+	ai_server_url_desc = "AI server URL",
+	ai_api_key_desc = "AI API Key",
+	ai_config_missing_error = "AI server URL or API key is not configured.",
+	ai_response_parse_error = "Failed to parse AI server response or invalid format: %s",
+	ai_call_failed_error = "AI server call failed with code %d: %s",
+	ai_job_start_error = "Failed to start AI server communication job.",
+	ai_select_prompt = "Select a suggested filename:",
+	ai_no_suggestions = "No filename suggestions received from AI.",
+	ai_selection_canceled = "Filename suggestion selection canceled.",
+	autosuggestnote_command_desc = "Save current buffer with AI-suggested filename",
 }

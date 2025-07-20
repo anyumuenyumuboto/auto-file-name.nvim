@@ -6,7 +6,6 @@ local M = {}
 local _config = {
 	lang = "en", -- デフォルト言語を英語に設定
 	extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
-	-- filename_format = "{{first_line}}_{{strftime:%Y%m%dT%H%M%S}}", -- ファイル名フォーマット (最初の行の内容とISO 8601形式のタイムスタンプ)
 	filename_format = "{{first_line}}_" .. os.date("%Y%m%dT%H%M%S"), -- ファイル名フォーマット (最初の行の内容とISO 8601形式のタイムスタンプ)
 	max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
 	save_directory = nil, -- デフォルトの保存ディレクトリ (nilの場合は現在の作業ディレクトリ)
@@ -44,38 +43,6 @@ local function sanitize_filename_part(s)
 	s = string.gsub(s, "__+", "_")
 	return s
 end
-
--- -- Luaプレースホルダーを処理し、安全なファイル名の一部を返す関数
--- local function process_lua_placeholder(lua_code_str)
--- 	local func, err = load("return " .. lua_code_str)
--- 	if not func then
--- 		vim.notify(
--- 			string.format(
--- 				"AutoFileName: Luaコードのパースに失敗しました: %s (コード: '%s')",
--- 				err,
--- 				lua_code_str
--- 			),
--- 			vim.log.levels.ERROR
--- 		)
--- 		return "" -- エラーの場合は空文字列を返す
--- 	end
---
--- 	local ok, result = pcall(func)
--- 	if not ok then
--- 		vim.notify(
--- 			string.format(
--- 				"AutoFileName: Luaコードの実行に失敗しました: %s (コード: '%s')",
--- 				result,
--- 				lua_code_str
--- 			),
--- 			vim.log.levels.ERROR
--- 		)
--- 		return "" -- エラーの場合は空文字列を返す
--- 	end
---
--- 	-- 結果を文字列に変換し、ファイル名としてサニタイズ
--- 	return sanitize_filename_part(tostring(result))
--- end
 
 -- 自動保存コマンドを定義
 function M.setup(user_config)
@@ -165,21 +132,6 @@ function M.setup(user_config)
 			local filename_format_str = _config.filename_format
 			-- {{first_line}} プレースホルダーを置換
 			filename_format_str = string.gsub(filename_format_str, "{{%s*first_line%s*}}", title)
-
-			-- -- {{ lua: ... }} プレースホルダーを置換
-			-- filename_format_str = string.gsub(filename_format_str, "{{%s*lua:%s*(.-)%s*}}", function(lua_code)
-			-- 	return process_lua_placeholder(lua_code)
-			-- end)
-
-			-- -- {{strftime: ...}} プレースホルダーを置換
-			-- -- os.dateでstrftime形式のフォーマットを処理
-			-- filename_format_str = string.gsub(
-			-- 	filename_format_str,
-			-- 	"{{%s*strftime:%s*(.-)%s*}}",
-			-- 	function(strftime_format)
-			-- 		return os.date(strftime_format)
-			-- 	end
-			-- )
 
 			-- 最終的なファイル名ベースは、全てのプレースホルダーが置換された文字列となる
 			local filename_base = filename_format_str

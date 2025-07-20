@@ -6,7 +6,7 @@ local M = {}
 local _config = {
 	lang = "en", -- デフォルト言語を英語に設定
 	extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
-	filename_format = "{{first_line}}_" .. os.date("%Y%m%dT%H%M%S"), -- ファイル名フォーマット (最初の行の内容とISO 8601形式のタイムスタンプ)
+	filename_format = "{{first_line}}", -- ファイル名フォーマット (最初の行の内容のみ)
 	max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
 	save_directory = nil, -- デフォルトの保存ディレクトリ (nilの場合は現在の作業ディレクトリ)
 }

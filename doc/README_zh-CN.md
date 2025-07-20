@@ -61,7 +61,7 @@ AutoFileName.nvim是一个Neovim插件，用于在新创建笔记文件并保存
 ```lua
 require('autofilename').setup({
   extension = ".txt", -- 保存为.txt文件
-  filename_format = "{{strftime:%Y%m%d-%H%M%S}}_{{lua:os.getenv('USER')}}_{{first_line}}",
+  filename_format = os.date("%Y%m%d-%H%M%S") .. "_" .. os.getenv("USER") .. "_{{first_line}}",
   lang = "zh-CN", -- 使用简体中文消息
   save_directory = "~/notes", -- 保存到 ~/notes 目录
   max_filename_length = 150, -- 文件名限制为150个字符

@@ -61,7 +61,7 @@ Available options:
 ```lua
 require('autofilename').setup({
   extension = ".txt", -- Save as .txt file
-  filename_format = "{{strftime:%Y%m%d-%H%M%S}}_{{lua:os.getenv('USER')}}_{{first_line}}",
+  filename_format = os.date("%Y%m%d-%H%M%S") .. "_" .. os.getenv("USER") .. "_{{first_line}}",
   lang = "en", -- Use English messages
   save_directory = "~/notes", -- Save to ~/notes directory
   max_filename_length = 150, -- Limit filename to 150 characters

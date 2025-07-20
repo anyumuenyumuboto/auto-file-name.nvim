@@ -61,7 +61,7 @@ AutoFileName.nvimは、Neovimで新しいメモファイルを作成・保存す
 ```lua
 require('autofilename').setup({
   extension = ".txt", -- .txtファイルとして保存
-  filename_format = "{{strftime:%Y%m%d-%H%M%S}}_{{lua:os.getenv('USER')}}_{{first_line}}",
+  filename_format = os.date("%Y%m%d-%H%M%S") .. "_" .. os.getenv("USER") .. "_{{first_line}}",
   lang = "ja", -- 日本語メッセージを使用
   save_directory = "~/notes", -- ~/notes ディレクトリに保存
   max_filename_length = 150, -- ファイル名を150文字に制限

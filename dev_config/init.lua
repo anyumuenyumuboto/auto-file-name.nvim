@@ -8,7 +8,7 @@ vim.opt.runtimepath:prepend(plugin_dev_path)
 require("autofilename").setup({
 	-- example
 	-- extension = ".txt",
-	-- filename_format = "untitled_{{strftime:%Y%m%dT%H%M%SZ}}",
+	-- filename_format = "{{first_line}}_" .. os.date("%Y%m%dT%H%M%S"), -- ファイル名フォーマット (最初の行の内容とISO 8601形式のタイムスタンプ)
 	-- save_directory = "./tmp/note/",
 	-- ai_server_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
 	-- ai_api_key = vim.env.GEMINI_API_KEY,

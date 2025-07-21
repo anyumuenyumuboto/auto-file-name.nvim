@@ -6,10 +6,8 @@ AutoFileName.nvim是一个Neovim插件，用于在新创建笔记文件并保存
 
 ## 功能
 
-*   **文件名自动生成**: 根据用户可配置的格式字符串（例如：`{{strftime:%Y%m%dT%H%M%S}}_{{first_line}}`）自动生成文件名。
-    *   `{{strftime:...}}`: 插入各种格式的日期和时间（例如：`{{strftime:%Y%m%d}}` 将生成 `20230706`）。
+*   **文件名自动生成**: 根据用户可配置的格式字符串（例如：`os.date('%Y%m%dT%H%M%S') .. '_{{first_line}}'`）自动生成文件名。
     *   `{{first_line}}`: 将缓冲区中第一个非空行的内容包含在文件名中。文件名中不合适的字符会自动进行净化处理。
-    *   `{{lua:...}}`: 执行任意Lua代码，并将其返回值包含在文件名中。结果会自动进行净化处理以符合文件名规范。
 *   **自动保存命令**: 提供 `:AutoSaveNote` 命令，以自动生成的文件名保存当前缓冲区内容。
 *   **文件扩展名设置**: 可配置要保存的文件扩展名（例如：`.md`, `.txt`）。
 *   **文件名冲突解决**: 如果文件名已存在，将自动添加序号（例如：`filename-1.md`）以避免冲突。
@@ -51,10 +49,10 @@ AutoFileName.nvim是一个Neovim插件，用于在新创建笔记文件并保存
 
 *   `lang` (string, 默认值: `"en"`): 设置插件消息的显示语言。可用选项有 `"en"` (英语), `"ja"` (日语), `"zh-CN"` (简体中文)。如果未设置，将尝试从系统环境变量 `LANG` 自动检测。
 *   `extension` (string, 默认值: `".md"`): 指定保存文件的默认扩展名。
-*   `filename_format` (string, 默认值: `{{strftime:%Y%m%dT%H%M%S}}_{{first_line}}`): 指定文件名的生成格式。支持以下占位符：
-    *   `{{strftime:format}}`: 接受与 `os.date` 函数相同的strftime格式字符串，并插入日期和时间（例如：`{{strftime:%Y-%m-%d_%H%M}}`）。
+*   `filename_format` (string, 默认值: `{{first_line}}`): 指定文件名的生成格式。支持以下占位符：
     *   `{{first_line}}`: 插入当前缓冲区中第一个非空行的内容。文件名中不合适的字符将自动转换为安全字符。
-    *   `{{lua:code}}`: 执行指定的Lua代码并插入其结果。结果将自动转换为安全的文件名字符（例如：`{{lua:vim.fn.hostname()}}` 插入主机名）。
+    *   **注意**: 如果要在文件名中包含日期时间或Lua代码的执行结果，请直接在 `init.lua` 配置中使用 `os.date()` 或 `vim.fn` 等Lua函数。
+        (例如: `filename_format = os.date('%Y-%m-%d') .. '_' .. '{{first_line}}'`)
 *   `save_directory` (string, 默认值: `nil`): 指定默认保存笔记的目录。如果为 `nil`，文件将保存到当前工作目录。
 *   `max_filename_length` (number, 默认值: `255`): 生成文件名的最大长度（包括扩展名）。用于防止超出操作系统限制。
 
@@ -63,7 +61,7 @@ AutoFileName.nvim是一个Neovim插件，用于在新创建笔记文件并保存
 ```lua
 require('autofilename').setup({
   extension = ".txt", -- 保存为.txt文件
-  filename_format = "{{strftime:%Y%m%d-%H%M%S}}_{{lua:os.getenv('USER')}}_{{first_line}}",
+  filename_format = os.date("%Y%m%d-%H%M%S") .. "_" .. os.getenv("USER") .. "_{{first_line}}",
   lang = "zh-CN", -- 使用简体中文消息
   save_directory = "~/notes", -- 保存到 ~/notes 目录
   max_filename_length = 150, -- 文件名限制为150个字符

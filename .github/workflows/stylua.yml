@@ -1,0 +1,27 @@
+name: Stylua Lint
+
+on:
+  push:
+    branches:
+      - aider  # 適用したいブランチ名
+  pull_request:
+    branches:
+      - aider
+
+jobs:
+  stylua:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install stylua
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y
+          source "$HOME/.cargo/env"
+          cargo install stylua
+
+      - name: Check Lua files are formatted
+        run: |
+          source "$HOME/.cargo/env"
+          stylua --check .

@@ -1,7 +1,16 @@
-
 return {
-    file_saved_message = "ファイルを %s として保存しました",
-    file_save_failed_message = "ファイルの保存にしっぱいしました: %s",
-    unknown_error = "不明なエラー",
-    autosavenote_command_desc = '現在のバッファを"untitled"という名前で保存',
+	file_saved_message = "ファイルを %s として保存しました",
+	file_save_failed_message = "ファイルの保存に失敗しました: %s",
+	unknown_error = "不明なエラー",
+	autosavenote_command_desc = '現在のバッファを"untitled"という名前で保存',
+	ai_server_url_desc = "AIサーバーURL",
+	ai_api_key_desc = "AI APIキー",
+	ai_config_missing_error = "AIサーバーのURLまたはAPIキーが設定されていません。",
+	ai_response_parse_error = "AIサーバーの応答の解析に失敗しました、または形式が不正です: %s",
+	ai_call_failed_error = "AIサーバー呼び出しがコード%dで失敗しました: %s",
+	ai_job_start_error = "AIサーバーとの通信ジョブの開始に失敗しました。",
+	ai_select_prompt = "提案されたファイル名を選択してください:",
+	ai_no_suggestions = "AIからファイル名の提案がありませんでした。",
+	ai_selection_canceled = "ファイル名の提案選択がキャンセルされました。",
+	autosuggestnote_command_desc = "AIが提案したファイル名で現在のバッファを保存",
 }

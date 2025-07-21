@@ -1,7 +1,5 @@
 /.env
 .aider*
-<<<<<<< HEAD
 /tmp/
-=======
-/tamesi.md
->>>>>>> main
+node_modules
+/.husky/

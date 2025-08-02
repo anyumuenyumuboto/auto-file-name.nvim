@@ -4,7 +4,7 @@ local M = {}
 
 -- プラグイン設定
 local _config = {
-	lang = "en", -- デフォルト言語を英語に設定
+	lang = "en-US", -- デフォルト言語を英語に設定
 	extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
 	filename_format = "{{first_line}}", -- ファイル名フォーマット (最初の行の内容のみ)
 	max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
@@ -43,15 +43,8 @@ local function sanitize_filename_part(s)
 	s = string.gsub(s, "__+", "_")
 	return s
 end
-
--- 自動保存コマンドを定義
-function M.setup(user_config)
-	-- ユーザー設定をマージ
-	_config = vim.tbl_deep_extend("force", _config, user_config or {})
-
 	-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
-	-- Neovimのv:langまたはLANG環境変数を使用
-	local system_lang = vim.env.LANG
+local function trim_system_lang(system_lang)
 	if system_lang then
 		-- 例: "ja_JP.UTF-8" から "ja_JP" を抽出し、"ja-JP" に変換
 		local locale_with_underscore = system_lang:match("([^%.]+)") -- "en_US.UTF-8" -> "en_US"
@@ -61,10 +54,34 @@ function M.setup(user_config)
 			system_lang = nil -- 環境変数が空、または不正な形式の場合はnil
 		end
 	end
+	return system_lang  
+end
+
+-- 自動保存コマンドを定義
+function M.setup(user_config)
+	-- ユーザー設定をマージ
+	_config = vim.tbl_deep_extend("force", _config, user_config or {})
+
+	-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
+	-- Neovimのv:langまたはLANG環境変数を使用
+	-- local system_lang = vim.env.LANG
+	-- if system_lang then
+	-- 	-- 例: "ja_JP.UTF-8" から "ja_JP" を抽出し、"ja-JP" に変換
+	-- 	local locale_with_underscore = system_lang:match("([^%.]+)") -- "en_US.UTF-8" -> "en_US"
+	-- 	if locale_with_underscore then
+	-- 		system_lang = string.gsub(locale_with_underscore, "_", "-") -- "en_US" -> "en-US"
+	-- 	else
+	-- 		system_lang = nil -- 環境変数が空、または不正な形式の場合はnil
+	-- 	end
+	-- end
+	local system_lang = trim_system_lang(vim.env.LANG)
 
 	-- 設定で言語が指定されていない場合、または無効な言語が指定されている場合、システム言語を使用
-	if not _config.lang or not _lang_messages[_config.lang] then
-		_config.lang = system_lang or "en" -- システム言語も不明な場合はデフォルトの英語
+	if not _config.lang 
+		-- or not _lang_messages[_config.lang] 
+		then
+		_config.lang = system_lang 
+		-- or "en-US" -- システム言語も不明な場合はデフォルトの英語
 	end
 
 	-- 言語ファイルを読み込む

@@ -2,29 +2,23 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
-
 dotenv: ['.env', '{{.ENV}}/.env', '{{.HOME}}/.env']
 
 tasks:
-  default:
+  aider:
+    desc: launches AI coding tool aider
     cmds:
-      - echo "{{.GREETING}}"
-    silent: true
-  aider_start:
-    cmds:
-      - aider --model gemini/gemini-2.5-flash --api-key gemini=$GEMINI_API_KEY
-  # 開発時に、自分の環境内にあるAutoSaveFile.nvimプラグインを読み込む
+      - aider --model $LLM_MODEL/$MODEL_VERBOSE --api-key $LLM_MODEL=$API_KEY
   nvim_dev:
+    desc: Load the AutoSaveFile.nvim plugin in your environment during development
     cmds:
-      - nvim --clean -u dev_config/init.lua
+      - API_KEY=$API_KEY nvim --clean -u dev_config/init.lua
   nvim_dev_en:
     cmds:
-      - LANG=en_US.UTF-8 nvim --clean -u dev_config/init.lua
+      - API_KEY=$API_KEY LANG=en_US.UTF-8 nvim --clean -u dev_config/init.lua
   nvim_dev_zh:
     cmds:
-      - LANG=zh_CN.UTF-8 nvim --clean -u dev_config/init.lua
+      - API_KEY=$API_KEY LANG=zh_CN.UTF-8 nvim --clean -u dev_config/init.lua
   nvim_dev_ja:
     cmds:
-      - LANG=ja_JP.UTF-8 nvim --clean -u dev_config/init.lua
+      - API_KEY=$API_KEY LANG=ja_JP.UTF-8 nvim --clean -u dev_config/init.lua

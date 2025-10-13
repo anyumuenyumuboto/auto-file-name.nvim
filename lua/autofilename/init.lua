@@ -43,7 +43,7 @@ local function sanitize_filename_part(s)
 	s = string.gsub(s, "__+", "_")
 	return s
 end
-	-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
+-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
 local function trim_system_lang(system_lang)
 	if system_lang then
 		-- 例: "ja_JP.UTF-8" から "ja_JP" を抽出し、"ja-JP" に変換
@@ -54,7 +54,7 @@ local function trim_system_lang(system_lang)
 			system_lang = nil -- 環境変数が空、または不正な形式の場合はnil
 		end
 	end
-	return system_lang  
+	return system_lang
 end
 
 -- 自動保存コマンドを定義
@@ -63,24 +63,14 @@ function M.setup(user_config)
 	_config = vim.tbl_deep_extend("force", _config, user_config or {})
 
 	-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
-	-- Neovimのv:langまたはLANG環境変数を使用
-	-- local system_lang = vim.env.LANG
-	-- if system_lang then
-	-- 	-- 例: "ja_JP.UTF-8" から "ja_JP" を抽出し、"ja-JP" に変換
-	-- 	local locale_with_underscore = system_lang:match("([^%.]+)") -- "en_US.UTF-8" -> "en_US"
-	-- 	if locale_with_underscore then
-	-- 		system_lang = string.gsub(locale_with_underscore, "_", "-") -- "en_US" -> "en-US"
-	-- 	else
-	-- 		system_lang = nil -- 環境変数が空、または不正な形式の場合はnil
-	-- 	end
-	-- end
 	local system_lang = trim_system_lang(vim.env.LANG)
 
 	-- 設定で言語が指定されていない場合、または無効な言語が指定されている場合、システム言語を使用
-	if not _config.lang 
-		-- or not _lang_messages[_config.lang] 
-		then
-		_config.lang = system_lang 
+	if
+		not _config.lang
+		-- or not _lang_messages[_config.lang]
+	then
+		_config.lang = system_lang
 		-- or "en-US" -- システム言語も不明な場合はデフォルトの英語
 	end
 
@@ -189,16 +179,7 @@ function M.setup(user_config)
 			-- 最終的な保存パスを決定
 			local final_save_path = save_path_candidate
 
-			-- ファイルへの書き込みを試みる
-			local ok, result_or_err = pcall(vim.fn.writefile, lines, final_save_path)
-
-			if ok and result_or_err == 0 then
-				vim.api.nvim_buf_set_name(0, final_save_path)
-				vim.api.nvim_buf_set_option(0, "modified", false)
-				vim.notify(_("file_saved_message", final_save_path), vim.log.levels.INFO)
-			else
-				vim.notify(_("file_save_failed_message", (result_or_err or _("unknown_error"))), vim.log.levels.ERROR)
-			end
+			vim.cmd("saveas " .. vim.fn.fnameescape(final_save_path))
 		end,
 		{
 			desc = _("autosavenote_command_desc"),
@@ -271,19 +252,7 @@ function M.setup(user_config)
 								-- 最終的な保存パスを決定
 								local final_save_path = save_path_candidate
 
-								-- ファイルへの書き込みを試みる
-								local ok, result_or_err = pcall(vim.fn.writefile, lines, final_save_path)
-
-								if ok and result_or_err == 0 then
-									vim.api.nvim_buf_set_name(0, final_save_path)
-									vim.api.nvim_buf_set_option(0, "modified", false)
-									vim.notify(_("file_saved_message", final_save_path), vim.log.levels.INFO)
-								else
-									vim.notify(
-										_("file_save_failed_message", (result_or_err or _("unknown_error"))),
-										vim.log.levels.ERROR
-									)
-								end
+								vim.cmd("saveas " .. vim.fn.fnameescape(final_save_path))
 							else
 								vim.notify(_("ai_selection_canceled"), vim.log.levels.INFO)
 							end

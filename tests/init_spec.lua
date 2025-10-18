@@ -24,4 +24,18 @@ describe("filename_sanitizer.sanitize_filename_part", function()
 			"My_new_filename"
 		)
 	end)
+
+	it("should handle Japanese characters and remove invalid characters", function()
+		assert.are.equal(
+			filename_sanitizer.sanitize_filename_part("新しいファイル名/テスト?。md"),
+			"新しいファイル名テスト。md"
+		)
+	end)
+
+	it("should retain allowed special characters like hyphens, underscores, and dots", function()
+		assert.are.equal(
+			filename_sanitizer.sanitize_filename_part("my-document_v1.0.txt"),
+			"my-document_v1.0.txt"
+		)
+	end)
 end)

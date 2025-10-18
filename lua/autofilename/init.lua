@@ -260,5 +260,6 @@ M._config_for_test_only = _config
 M._lang_messages_for_test_only = _lang_messages
 M._create_file_path_helpers = file_path_helpers.create
 M._create_nvim_api_helpers = _create_nvim_api_helpers
+M.trim_system_lang_for_test_only = trim_system_lang -- テスト用に公開
 
 return M

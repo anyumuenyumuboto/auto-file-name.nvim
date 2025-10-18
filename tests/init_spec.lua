@@ -1,5 +1,5 @@
 -- vim.test に依存しない、plenary.busted の最小限のテスト
-local busted = require("plenary.busted")
+-- local busted = require("plenary.busted")
 
 describe("plenary.busted functionality", function()
 	it("should run a basic assertion successfully", function()

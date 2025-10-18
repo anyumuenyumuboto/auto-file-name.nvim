@@ -4,7 +4,7 @@ local M = {}
 
 -- プラグイン設定
 local _config = {
-	lang = "en-US", -- デフォルト言語を英語に設定
+	lang = nil, -- デフォルト言語をnilに設定
 	extension = ".md", -- デフォルトのファイル拡張子を.mdに設定
 	filename_format = "{{first_line}}", -- ファイル名フォーマット (最初の行の内容のみ)
 	max_filename_length = 255, -- 最大ファイル名長 (OSの制限に合わせる)
@@ -106,13 +106,9 @@ function M.setup(user_config)
 	-- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
 	local system_lang = trim_system_lang(vim.env.LANG)
 
-	-- 設定で言語が指定されていない場合、または無効な言語が指定されている場合、システム言語を使用
-	if
-		not _config.lang
-		-- or not _lang_messages[_config.lang]
-	then
-		_config.lang = system_lang
-		-- or "en-US" -- システム言語も不明な場合はデフォルトの英語
+	-- 設定で言語が指定されていない場合、システム言語を使用
+	if not _config.lang then
+		_config.lang = system_lang or "en-US" -- システム言語も不明な場合はデフォルトの英語
 	end
 
 	-- 言語ファイルを読み込む
@@ -122,7 +118,7 @@ function M.setup(user_config)
 		_lang_messages = messages
 	else
 		-- 翻訳ファイルの読み込みに失敗した場合、デフォルトの英語を試みる
-		if _config.lang ~= "en" then
+		if _config.lang ~= "en-US" then
 			nvim_api_helpers.show_notification(
 				string.format(
 					"翻訳ファイル '%s' の読み込みに失敗しました。英語を試します。",
@@ -130,7 +126,7 @@ function M.setup(user_config)
 				),
 				nvim_api_helpers.get_warn_level()
 			)
-			lang_file_path = "autofilename.i18n.en"
+			lang_file_path = "autofilename.i18n.en-US"
 			ok, messages = pcall(require, lang_file_path)
 			if ok and type(messages) == "table" then
 				_lang_messages = messages

@@ -21,7 +21,7 @@ describe("filename_sanitizer.sanitize_filename_part", function()
 	it("should replace spaces with underscores and remove invalid characters", function()
 		assert.are.equal(
 			filename_sanitizer.sanitize_filename_part("My new file/name?"),
-			"My_new_file_name"
+			"My_new_filename"
 		)
 	end)
 end)

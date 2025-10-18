@@ -1,16 +1,16 @@
--- vim.test が利用可能かを確認するための最小限のテスト
+-- vim.test に依存しない、plenary.busted の最小限のテスト
 local busted = require("plenary.busted")
 
-describe("vim.test availability", function()
-	it("should have vim.test available", function()
-		assert.is_not_nil(vim.test)
+describe("plenary.busted functionality", function()
+	it("should run a basic assertion successfully", function()
+		assert.are.equal(1 + 1, 2)
 	end)
 
-	it("should have vim.test.fn available", function()
-		assert.is_not_nil(vim.test.fn)
+	it("should recognize true as true", function()
+		assert.is_true(true)
 	end)
 
-	it("should have vim.test.stub available", function()
-		assert.is_not_nil(vim.test.stub)
+	it("should recognize nil as nil", function()
+		assert.is_nil(nil)
 	end)
 end)

@@ -1,4 +1,3 @@
-
 local M = {}
 
 --- ヘルパー関数: ファイルパス操作、テスト用に依存性を注入可能にする
@@ -15,7 +14,9 @@ function M.create(dependencies, nvim_api)
 	local vim_fn_filereadable = dependencies.vim_fn_filereadable or vim.fn.filereadable
 	local vim_fs_joinpath = dependencies.vim_fs_joinpath or vim.fs.joinpath
 	local show_notification = nvim_api.show_notification or vim.notify
-	local get_error_level = nvim_api.get_error_level or function() return vim.log.levels.ERROR end
+	local get_error_level = nvim_api.get_error_level or function()
+		return vim.log.levels.ERROR
+	end
 
 	--- 保存ディレクトリが有効かチェックし、必要なら作成する
 	--- @param save_dir string 保存先ディレクトリパス
@@ -28,7 +29,8 @@ function M.create(dependencies, nvim_api)
 				show_notification(
 					string.format(
 						translate_func("file_save_failed_message"),
-						"ディレクトリの作成に失敗しました: " .. (mkdir_err or translate_func("unknown_error"))
+						"ディレクトリの作成に失敗しました: "
+							.. (mkdir_err or translate_func("unknown_error"))
 					),
 					get_error_level()
 				)

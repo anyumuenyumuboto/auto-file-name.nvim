@@ -31,18 +31,32 @@ end
 
 -- ユーザーの環境言語を検出（例: "en", "ja", "zh-CN"など）
 local function trim_system_lang(system_lang)
-	if system_lang then
-		-- 例: "ja_JP.UTF-8" から "ja_JP" を抽出し、"ja-JP" に変換
-		local locale_with_underscore = system_lang:match("([^%.]+)") -- "en_US.UTF-8" -> "en_US"
-		if locale_with_underscore then
-			system_lang = string.gsub(locale_with_underscore, "_", "-") -- "en_US" -> "en-US"
-		else
-			system_lang = nil -- 環境変数が空、または不正な形式の場合はnil
-		end
+	if not system_lang then
+		return nil
 	end
-	return system_lang
-end
 
+	-- 前後の空白をトリム
+	local trimmed_lang = system_lang:match("^%s*(.-)%s*$")
+	if not trimmed_lang or trimmed_lang == "" then
+		return nil
+	end
+
+	-- "." の位置を探す
+	local dot_index = trimmed_lang:find("%.")
+	local locale_part
+
+	if dot_index then
+		locale_part = trimmed_lang:sub(1, dot_index - 1)
+	else
+		locale_part = trimmed_lang
+	end
+
+	if locale_part ~= "" then
+		return string.gsub(locale_part, "_", "-")
+	else
+		return nil
+	end
+end
 
 -- Neovim API操作のヘルパー関数を作成するファクトリ関数
 local function _create_nvim_api_helpers(dependencies)
@@ -59,9 +73,15 @@ local function _create_nvim_api_helpers(dependencies)
 			vim.ui.select(items, options, on_choice)
 		end,
 		show_notification = dependencies.show_notification or vim.notify,
-		get_error_level = dependencies.get_error_level or function() return vim.log.levels.ERROR end,
-		get_info_level = dependencies.get_info_level or function() return vim.log.levels.INFO end,
-		get_warn_level = dependencies.get_warn_level or function() return vim.log.levels.WARN end,
+		get_error_level = dependencies.get_error_level or function()
+			return vim.log.levels.ERROR
+		end,
+		get_info_level = dependencies.get_info_level or function()
+			return vim.log.levels.INFO
+		end,
+		get_warn_level = dependencies.get_warn_level or function()
+			return vim.log.levels.WARN
+		end,
 		get_current_working_directory = dependencies.get_current_working_directory or vim.fn.getcwd,
 		schedule_wrap = dependencies.schedule_wrap or vim.schedule,
 	}
@@ -198,54 +218,63 @@ function M.setup(user_config)
 
 			-- AIサジェスト関数を呼び出し、結果を待機
 			ai_suggester.get_ai_suggestions(lines, function(suggestions)
-				nvim_api_helpers.schedule_wrap(function() -- UI操作はメインスレッドで実行する必要がある
-					if #suggestions > 0 then
-						-- vim.ui.select を使用してユーザーに選択させる
-						nvim_api_helpers.show_select_prompt(suggestions, {
-							prompt = _("ai_select_prompt"),
-							format_item = function(item)
-								-- 提案の形式に応じて表示を調整 (例: { name = "ファイル名", score = 0.9 } )
-								-- fileNameCandidateフィールドを優先し、なければnameフィールドを使用
-								local display_name = item.fileNameCandidate or item.name or ""
-								return display_name
-									.. (item.score and string.format(" (スコア: %.2f)", item.score) or "")
-							end,
-						}, function(selected_suggestion)
-							if selected_suggestion then
-								-- ユーザーが選択したファイル名を使用して保存処理を続行
-								-- fileNameCandidateフィールドを優先し、なければnameフィールドを使用
-								local filename_base = filename_sanitizer.sanitize_filename_part(
-									selected_suggestion.fileNameCandidate or selected_suggestion.name
-								)
-								-- ファイル名の長さを制限 (拡張子と最悪の連番(-XXXXX)の長さを考慮)
-								local max_base_len = _config.max_filename_length - #_config.extension - 5
-								if #filename_base > max_base_len then
-									filename_base = string.sub(filename_base, 1, max_base_len)
+				nvim_api_helpers.schedule_wrap(
+					function() -- UI操作はメインスレッドで実行する必要がある
+						if #suggestions > 0 then
+							-- vim.ui.select を使用してユーザーに選択させる
+							nvim_api_helpers.show_select_prompt(suggestions, {
+								prompt = _("ai_select_prompt"),
+								format_item = function(item)
+									-- 提案の形式に応じて表示を調整 (例: { name = "ファイル名", score = 0.9 } )
+									-- fileNameCandidateフィールドを優先し、なければnameフィールドを使用
+									local display_name = item.fileNameCandidate or item.name or ""
+									return display_name
+										.. (item.score and string.format(" (スコア: %.2f)", item.score) or "")
+								end,
+							}, function(selected_suggestion)
+								if selected_suggestion then
+									-- ユーザーが選択したファイル名を使用して保存処理を続行
+									-- fileNameCandidateフィールドを優先し、なければnameフィールドを使用
+									local filename_base = filename_sanitizer.sanitize_filename_part(
+										selected_suggestion.fileNameCandidate or selected_suggestion.name
+									)
+									-- ファイル名の長さを制限 (拡張子と最悪の連番(-XXXXX)の長さを考慮)
+									local max_base_len = _config.max_filename_length - #_config.extension - 5
+									if #filename_base > max_base_len then
+										filename_base = string.sub(filename_base, 1, max_base_len)
+									end
+
+									local file_extension = _config.extension
+									local save_dir = _config.save_directory
+										or nvim_api_helpers.get_current_working_directory()
+
+									-- 保存ディレクトリの存在を確認し、必要なら作成
+									local dir_ok, dir_err = fs_helpers.ensure_save_directory(save_dir, _)
+									if not dir_ok then
+										-- エラー通知は ensure_save_directory 内で行われる
+										return -- ディレクトリ作成失敗時は処理を中断
+									end
+
+									-- 最終的な保存パスを決定
+									local final_save_path =
+										fs_helpers.get_unique_save_path(filename_base, file_extension, save_dir)
+
+									nvim_api_helpers.save_file_as(final_save_path)
+								else
+									nvim_api_helpers.show_notification(
+										_("ai_selection_canceled"),
+										nvim_api_helpers.get_info_level()
+									)
 								end
-
-								local file_extension = _config.extension
-								local save_dir = _config.save_directory or nvim_api_helpers.get_current_working_directory()
-
-								-- 保存ディレクトリの存在を確認し、必要なら作成
-								local dir_ok, dir_err = fs_helpers.ensure_save_directory(save_dir, _)
-								if not dir_ok then
-									-- エラー通知は ensure_save_directory 内で行われる
-									return -- ディレクトリ作成失敗時は処理を中断
-								end
-
-								-- 最終的な保存パスを決定
-								local final_save_path =
-									fs_helpers.get_unique_save_path(filename_base, file_extension, save_dir)
-
-								nvim_api_helpers.save_file_as(final_save_path)
-							else
-								nvim_api_helpers.show_notification(_("ai_selection_canceled"), nvim_api_helpers.get_info_level())
-							end
-						end)
-					else
-						nvim_api_helpers.show_notification(_("ai_no_suggestions"), nvim_api_helpers.get_info_level())
+							end)
+						else
+							nvim_api_helpers.show_notification(
+								_("ai_no_suggestions"),
+								nvim_api_helpers.get_info_level()
+							)
+						end
 					end
-				end)
+				)
 			end)
 		end,
 		{

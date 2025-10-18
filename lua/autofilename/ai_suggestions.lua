@@ -111,7 +111,10 @@ local function get_ai_suggestions(buffer_content, callback, opts)
 					end
 					callback(suggestions)
 				else
-					_show_notification(_translate_func_internal("ai_response_parse_error", response_str), _get_error_level())
+					_show_notification(
+						_translate_func_internal("ai_response_parse_error", response_str),
+						_get_error_level()
+					)
 					callback({})
 				end
 			else
@@ -135,7 +138,9 @@ function M.setup(config, translate_func, nvim_api)
 	_config_internal = config
 	_translate_func_internal = translate_func
 	_show_notification = nvim_api.show_notification or vim.notify
-	_get_error_level = nvim_api.get_error_level or function() return vim.log.levels.ERROR end
+	_get_error_level = nvim_api.get_error_level or function()
+		return vim.log.levels.ERROR
+	end
 	return {
 		get_ai_suggestions = get_ai_suggestions,
 	}

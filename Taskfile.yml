@@ -9,6 +9,10 @@ tasks:
     desc: launches AI coding tool aider
     cmds:
       - aider --model $LLM_MODEL/$MODEL_VERBOSE --api-key $LLM_MODEL=$API_KEY
+  test:
+    desc: Test the AutoSaveFile.nvim plugin
+    cmds:
+      - nvim --headless --clean -u tests/minimal_init.lua -c "lua require('plenary.test_harness').test_directory('tests', { minimal_init = 'tests/minimal_init.lua' })"
   nvim_dev:
     desc: Load the AutoSaveFile.nvim plugin in your environment during development
     cmds:

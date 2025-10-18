@@ -41,6 +41,7 @@ describe("filename_sanitizer.sanitize_filename_part", function()
 end)
 
 describe("autofilename.init.trim_system_lang", function()
+	local autofilename_init = require("autofilename.init") -- テスト対象モジュールをここでロード
 	local trim_system_lang
 
 	before_each(function()
